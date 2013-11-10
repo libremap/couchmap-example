@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+}
+
+p {
+  text-align: center;
+}

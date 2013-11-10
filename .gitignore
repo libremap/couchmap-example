@@ -1,7 +1,9 @@
 syntax: glob
 node_modules
+bower_components
 npm-debug.log
 tmp
+build*
 couchconfig.json
 *~
 *.bak

@@ -14,7 +14,7 @@ module.exports = function(grunt) {
     var files = {};
     files[couchconfig.couches[couch].database] = 'tmp/couchmap-api.json';
     couchpushopts[couch] = { files: files};
-  };
+  }
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -23,7 +23,29 @@ module.exports = function(grunt) {
       options: {
         '-W025': true // Missing name in function declaration.
       },
-      files: ['ddoc/**/*.js', 'vendor/**/*.js']
+      files: ['Gruntfile.js', 'ddoc/**/*.js', 'src/**/*.js']
+    },
+    copy: {
+      webui: {
+        files: [
+          {
+            expand: true,
+            cwd: 'src',
+            src: ['index.html', 'css/couchmap.css'],
+            dest: 'build-webui'
+          }
+        ]
+      },
+      'ddoc-webui': {
+        files: [
+          {
+            expand: true,
+            cwd: 'build-webui',
+            src: '**/*',
+            dest: 'build-ddoc/_attachments'
+          }
+        ]
+      },
     },
     replace: {
       glue: {
@@ -44,18 +66,51 @@ module.exports = function(grunt) {
         src: ['tmp/couchmap-common.glue'],
         options: {
         }
+      },
+      'webui-vendor': {
+        src: [],
+        dest: 'build-webui/js/vendor.js',
+        options: {
+          shim: {
+            jquery: {
+              path: 'bower_components/jquery/jquery.min.js',
+              exports: '$'
+            },
+            leaflet: {
+              path: 'vendor/leaflet/leaflet.js',
+              exports: 'L'
+            }
+          }
+        }
+      },
+      // browserify couchmap.js
+      webui: {
+        dest: 'build-webui/js/couchmap.js',
+        src: [ 'src/js/couchmap.js' ],
+        options: {
+          debug: grunt.option('debug'),
+          external: ['jquery', 'bootstrap', 'leaflet'],
+        }
       }
     },
     concat: {
       glue: {
         src: ['tmp/couchmap-common.js', 'couchdb-browserify-glue-footer.js'],
-        dest: 'tmp/merge/views/lib/couchmap-common.js'
+        dest: 'build-ddoc/views/lib/couchmap-common.js'
+      },
+      // concat vendor css files
+      'webui-vendor-css': {
+        files: {
+          'build-webui/css/vendor.css': [
+            'vendor/leaflet/leaflet.css'
+          ]
+        }
       }
     },
     'couch-compile': {
       'couchmap-api': {
         options: {
-          merge: 'tmp/merge'
+          merge: 'build-ddoc'
         },
         files: {
           'tmp/couchmap-api.json': 'ddoc'
@@ -64,6 +119,7 @@ module.exports = function(grunt) {
     },
     'couch-push': couchpushopts
   });
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-browserify');
@@ -72,5 +128,6 @@ module.exports = function(grunt) {
 
   // Default task(s).
   grunt.registerTask('default', ['jshint']);
-  grunt.registerTask('push', ['jshint', 'replace:glue', 'browserify', 'concat', 'couch']);
+  grunt.registerTask('webui', ['jshint', 'copy:webui', 'concat:webui-vendor-css', 'browserify:webui-vendor', 'browserify:webui']);
+  grunt.registerTask('push', ['webui', 'copy:ddoc-webui', 'replace:glue', 'browserify', 'concat', 'couch']);
 };

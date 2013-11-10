@@ -1,0 +1,14 @@
+{
+  "name": "couchmap-example",
+  "version": "0.1.0",
+  "homepage": "https://github.com/libremap/couchmap-example/",
+  "authors": [
+    "André Gaul <gaul@web-yard.de>"
+  ],
+  "description": "couchmap",
+  "license": "GPLv3",
+  "private": true,
+  "dependencies": {
+    "jquery": "~2.0.3"
+  }
+}
