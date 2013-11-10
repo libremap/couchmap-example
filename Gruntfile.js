@@ -117,17 +117,49 @@ module.exports = function(grunt) {
         }
       }
     },
-    'couch-push': couchpushopts
+    'couch-push': couchpushopts,
+    connect: {
+      webui: {
+        options: {
+          port: 9000,
+          hostname: '*',
+          base: 'build-webui',
+          livereload: 31337
+        }
+      }
+    },
+    watch: {
+      options: {
+        livereload: 31337
+      },
+      webui_config: {
+        files: ['config.json'],
+        tasks: ['webui']
+      },
+      webui_static: {
+        files: ['index.html', 'css/couchmap.css'],
+        tasks: ['copy:webui'],
+        options: {
+          cwd: 'src'
+        }
+      },
+      webui_js: {
+        files: ['src/**/*.js'],
+        tasks: ['jshint', 'browserify:webui']
+      }
+    }
   });
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-replace');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-browserify');
-  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-couch');
+  grunt.loadNpmTasks('grunt-replace');
 
   // Default task(s).
-  grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('default', ['webui', 'connect', 'watch']);
   grunt.registerTask('webui', ['jshint', 'copy:webui', 'concat:webui-vendor-css', 'browserify:webui-vendor', 'browserify:webui']);
   grunt.registerTask('push', ['webui', 'copy:ddoc-webui', 'replace:glue', 'browserify', 'concat', 'couch']);
 };
