@@ -1,0 +1,9 @@
+syntax: glob
+node_modules
+npm-debug.log
+tmp
+couchconfig.json
+*~
+*.bak
+*.orig
+.*.swp

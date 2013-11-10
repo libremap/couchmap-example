@@ -1,0 +1,31 @@
+{
+  "name": "couchmap-example",
+  "version": "0.1.0",
+  "description": "CouchDB server design document for LibreMap",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/libremap/couchmap-example.git"
+  },
+  "keywords": [
+    "couchmap",
+    "couchdb",
+    "map",
+    "geocouch"
+  ],
+  "author": "André Gaul <gaul@web-yard.de>",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/libremap/couchmap-example/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.4",
+    "underscore": "~1.5.2",
+    "grunt-couch": "~1.2.3",
+    "couchmap-common": "libremap/couchmap-common",
+    "browserify": "~2.35",
+    "grunt-browserify": "~1.2.8",
+    "grunt-replace": "~0.5.1",
+    "grunt-contrib-concat": "~0.3.0"
+  }
+}
