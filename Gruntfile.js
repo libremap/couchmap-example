@@ -46,6 +46,16 @@ module.exports = function(grunt) {
           }
         ]
       },
+      'vendor': {
+        files: [
+          {
+            expand: true,
+            cwd: 'bower_components/leaflet/dist/images',
+            src: '**/*',
+            dest: 'build-webui/images/vendor/leaflet'
+          }
+        ]
+      }
     },
     replace: {
       glue: {
@@ -160,6 +170,6 @@ module.exports = function(grunt) {
 
   // Default task(s).
   grunt.registerTask('default', ['webui', 'connect', 'watch']);
-  grunt.registerTask('webui', ['jshint', 'copy:webui', 'concat:webui-vendor-css', 'browserify:webui-vendor', 'browserify:webui']);
+  grunt.registerTask('webui', ['jshint', 'copy:webui', 'copy:vendor', 'concat:webui-vendor-css', 'browserify:webui-vendor', 'browserify:webui']);
   grunt.registerTask('push', ['webui', 'copy:ddoc-webui', 'replace:glue', 'browserify', 'concat', 'couch']);
 };
