@@ -10,43 +10,85 @@ function bounds2bbox(bounds) {
   return common.bbox([[sw.lat,sw.lng],[ne.lat,ne.lng]]);
 }
 
+var CoarseMarkerView = Backbone.View.extend({
+  initialize: function(options) {
+    this.layer = options.layer;
+    this.listenTo(this.model, 'change', this.render);
+    this.render();
+  },
+  render: function() {
+    if (this.marker) {
+      this.remove();
+    }
+    this.marker = L.marker([this.model.get('lat'), this.model.get('lon')])
+      .addTo(this.layer);
+  },
+  remove: function() {
+    this.layer.removeLayer(this.marker);
+  }
+});
+
 var CoarseView = Backbone.View.extend({
   initialize: function(options) {
     this.mapView = options.mapView;
-    this.render();
-    this.listenTo(this.mapView, 'bbox', function(bbox, zoom) {
-      var tiles = bbox.toTiles(zoom);
-      console.log(tiles);
-      this.bbox_ids = _.map(tiles, function(k) { return k.toString(); });
-      this.render();
-    });
-    this.listenTo(this.collection, 'add', this.add);
-  },
-  render: function() {
-    if (this.layer) {
-      this.mapView.map.removeLayer(this.layer);
-    }
+    this.bbox = bounds2bbox(this.mapView.map.getBounds());
+    this.zoom = this.mapView.map.getZoom();
     this.layer = L.layerGroup().addTo(this.mapView.map);
     this.markers = {};
-    if (this.bbox_ids) {
-      var models = _.compact(this.collection.get(this.bbox_ids));
-      _.each(models, this.add, this);
+
+    this.coarse_model_views = {};
+
+    this.listenTo(this.mapView, 'bbox', function(bbox, zoom) {
+      this.bbox = bbox;
+      if (this.zoom!=zoom) {
+        this.zoom = zoom;
+      }
+    });
+    this.listenTo(this.collection, 'sync', this.render);
+    this.listenTo(this.collection, 'add', this.addModel);
+    this.listenTo(this.collection, 'remove', this.removeModel);
+    this.render();
+
+  },
+  render: function() {
+    // add views for the current zoom level
+    _.each(this.collection.where({zoom: this.zoom}), this.addModel, this);
+    // remove views for other zoom levels
+    var remove = this.collection.filter(function(model) {
+      return model.get('zoom')!=this.zoom;
+    }, this);
+    _.each(remove, this.removeModel, this);
+  },
+  addModel: function(model) {
+    var id = model.get('id');
+    if (model.get('zoom')==this.zoom && !this.markers[id]) {
+      this.markers[id] = new CoarseMarkerView({
+        layer: this.layer,
+        model: model
+      });
     }
   },
-  add: function(model) {
+  removeModel: function(model) {
     var id = model.get('id');
     if (this.markers[id]) {
-      this.layer.removeLayer(this.markers[id]);
+      this.markers[id].remove();
+      delete this.markers[id];
     }
-    if (this.bbox_ids && _.contains(this.bbox_ids, id)) {
-      this.markers[id] = L.marker([model.get('lat'), model.get('lon')])
-        .addTo(this.layer);
-    }
+  },
+  remove: function() {
+    _.each(this.markers, function(marker, id) {
+      marker.remove();
+    });
+    this.markers = {};
+    this.mapView.map.removeLayer(this.layer);
   }
 });
 
 module.exports = Backbone.View.extend({
   initialize: function(options) {
+    this.CoarseView = options.CoarseView || CoarseView;
+    this.FineView = options.FineView || undefined;//FineView;
+
     // create map and add OpenStreetMap tile layer
     this.map = L.map(this.el, {center: [10, 0], zoom: 2} );
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -54,28 +96,37 @@ module.exports = Backbone.View.extend({
       }).addTo(this.map);
     this.map.on('moveend', this.update_bbox, this);
 
-    this.listenTo(this.model, 'change', this.render);
-    this.render();
-
+    this.listenTo(this.model, {
+      'fine': this.render.bind(this, 'fine'),
+      'coarse': this.render.bind(this, 'coarse')
+    });
     this.update_bbox();
   },
   update_bbox: function() {
     var bbox = bounds2bbox(this.map.getBounds());
     var zoom = this.map.getZoom();
-    this.model.update(bbox, zoom);
     this.trigger('bbox', bbox, zoom);
+    this.model.update(bbox, zoom);
   },
-  render: function() {
-    if (this.coarse_view) {
-      this.coarse_view.remove();
+  render: function(mode) {
+    if (this.mode!=mode) {
+      this.mode = mode;
+      if (this.subview) {
+        this.subview.remove();
+      }
+      if (this.mode=='coarse') {
+        this.subview = new this.CoarseView(_.extend(this.coarse_options || {}, {
+          mapView: this,
+          collection: this.model.get('coarse_coll')
+        }));
+      } else {
+        // TODO
+      }
     }
-    if (this.fine_view) {
-      this.fine_view.remove();
+  },
+  remove: function() {
+    if (this.subview) {
+      this.subview.remove();
     }
-
-    this.coarse_view = new CoarseView({
-      mapView: this,
-      collection: this.model.get('coarse_coll')
-    });
   }
 });
