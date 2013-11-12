@@ -20,7 +20,9 @@ var CoarseMarkerView = Backbone.View.extend({
     if (this.marker) {
       this.remove();
     }
-    this.marker = L.marker([this.model.get('lat'), this.model.get('lon')])
+    this.marker = L.marker([this.model.get('lat'), this.model.get('lon')],{
+      title: this.model.get('count').toString()
+    })
       .addTo(this.layer);
   },
   remove: function() {
@@ -84,10 +86,16 @@ var CoarseView = Backbone.View.extend({
   }
 });
 
+var FineView = Backbone.View.extend({
+  initialize: function(options) {
+    this.mapView = options.mapView;
+  }
+});
+
 module.exports = Backbone.View.extend({
   initialize: function(options) {
     this.CoarseView = options.CoarseView || CoarseView;
-    this.FineView = options.FineView || undefined;//FineView;
+    this.FineView = options.FineView || FineView;
 
     // create map and add OpenStreetMap tile layer
     this.map = L.map(this.el, {center: [10, 0], zoom: 2} );
