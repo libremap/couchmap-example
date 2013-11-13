@@ -89,6 +89,13 @@ module.exports = function(grunt) {
             leaflet: {
               path: 'vendor/leaflet/leaflet.js',
               exports: 'L'
+            },
+            'leaflet-markercluster': {
+              path: 'vendor/leaflet.markercluster/leaflet.markercluster.js',
+              exports: 'L',
+              depends: {
+                'leaflet': 'L'
+              }
             }
           }
         }
@@ -99,7 +106,7 @@ module.exports = function(grunt) {
         src: [ 'src/js/couchmap.js' ],
         options: {
           debug: grunt.option('debug'),
-          external: ['jquery', 'bootstrap', 'leaflet'],
+          external: ['jquery', 'bootstrap', 'leaflet', 'leaflet-markercluster'],
         }
       }
     },
@@ -112,7 +119,9 @@ module.exports = function(grunt) {
       'webui-vendor-css': {
         files: {
           'build-webui/css/vendor.css': [
-            'vendor/leaflet/leaflet.css'
+            'vendor/leaflet/leaflet.css',
+            'vendor/leaflet.markercluster/MarkerCluster.css',
+            'vendor/leaflet.markercluster/MarkerCluster.Default.css'
           ]
         }
       }

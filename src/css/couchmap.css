@@ -10,3 +10,17 @@ body {
 p {
   text-align: center;
 }
+
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large
+{
+  background-color: rgba(133, 232, 5, 0.6);
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div
+{
+  background-color: rgba(133, 232, 5, 0.8);
+}

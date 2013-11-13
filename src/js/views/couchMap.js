@@ -21,8 +21,20 @@ var CoarseMarkerView = Backbone.View.extend({
     if (this.marker) {
       this.remove();
     }
+    var count = this.model.get('count');
+    var size = 'large';
+    if (count<10) {
+      size = 'small';
+    } else if (count<100) {
+      size = 'medium';
+    }
+    var icon = new L.DivIcon({
+      html: '<div><span>'+count+'</span></div>',
+      className: 'marker-cluster marker-cluster-'+size,
+      iconSize: new L.Point(40,40)
+    });
     this.marker = L.marker([this.model.get('lat'), this.model.get('lon')],{
-      title: this.model.get('count').toString()
+      icon: icon
     })
       .addTo(this.layer);
   },
