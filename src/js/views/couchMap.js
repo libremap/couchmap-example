@@ -1,5 +1,6 @@
 var Backbone =  require('backbone');
 var _ = require('underscore');
+var common = require('couchmap-common');
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'images/vendor/leaflet';
 
@@ -30,11 +31,23 @@ var CoarseMarkerView = Backbone.View.extend({
   }
 });
 
+var validate_zoom = function(zoom) {
+  var min = common.coarse_min_zoom;
+  var max = common.coarse_max_zoom;
+  if (zoom<min) {
+    return min;
+  }
+  if (zoom>max) {
+    return max;
+  }
+  return zoom;
+};
+
 var CoarseView = Backbone.View.extend({
   initialize: function(options) {
     this.mapView = options.mapView;
     this.bbox = bounds2bbox(this.mapView.map.getBounds());
-    this.zoom = this.mapView.map.getZoom();
+    this.zoom = validate_zoom(this.mapView.map.getZoom()+1);
     this.layer = L.layerGroup().addTo(this.mapView.map);
     this.markers = {};
 
@@ -155,7 +168,7 @@ module.exports = Backbone.View.extend({
   },
   update_bbox: function() {
     var bbox = bounds2bbox(this.map.getBounds());
-    var zoom = this.map.getZoom();
+    var zoom = validate_zoom(this.map.getZoom()+1);
     this.trigger('bbox', bbox, zoom);
     this.model.update(bbox, zoom);
   },
