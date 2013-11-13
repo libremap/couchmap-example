@@ -38,8 +38,6 @@ var CoarseView = Backbone.View.extend({
     this.layer = L.layerGroup().addTo(this.mapView.map);
     this.markers = {};
 
-    this.coarse_model_views = {};
-
     this.listenTo(this.mapView, 'bbox', function(bbox, zoom) {
       this.bbox = bbox;
       if (this.zoom!=zoom) {
@@ -50,7 +48,6 @@ var CoarseView = Backbone.View.extend({
     this.listenTo(this.collection, 'add', this.addModel);
     this.listenTo(this.collection, 'remove', this.removeModel);
     this.render();
-
   },
   render: function() {
     // add views for the current zoom level
@@ -86,9 +83,55 @@ var CoarseView = Backbone.View.extend({
   }
 });
 
+var FineMarkerView = Backbone.View.extend({
+  initialize: function(options) {
+    this.layer = options.layer;
+    this.listenTo(this.model, 'change', this.render);
+    this.render();
+  },
+  render: function() {
+    if (this.marker) {
+      this.remove();
+    }
+    this.marker = L.marker([this.model.get('lat'), this.model.get('lon')],{
+      title: 'fine'
+    })
+      .addTo(this.layer);
+  },
+  remove: function() {
+    this.layer.removeLayer(this.marker);
+  }
+});
+
 var FineView = Backbone.View.extend({
   initialize: function(options) {
     this.mapView = options.mapView;
+    this.layer = L.layerGroup().addTo(this.mapView.map);
+    this.subviews = {};
+    this.listenTo(this.collection, 'sync', this.render);
+    this.listenTo(this.collection, 'add', this.addModel);
+    this.listenTo(this.collection, 'remove', this.removeModel);
+    this.render();
+  },
+  addModel: function(model) {
+    this.removeModel(model);
+    this.subviews[model.id] = new FineMarkerView({
+      layer: this.layer,
+      model: model
+    });
+  },
+  removeModel: function(model) {
+    if (this.subviews[model.id]) {
+      this.subviews[model.id].remove();
+      delete this.subviews[model.id];
+    }
+  },
+  render: function() {
+    this.collection.each(this.addModel, this);
+  },
+  remove: function() {
+    _.each(this.subviews, this.removeModel, this);
+    this.mapView.map.removeLayer(this.layer);
   }
 });
 
@@ -128,7 +171,10 @@ module.exports = Backbone.View.extend({
           collection: this.model.get('coarse_coll')
         }));
       } else {
-        // TODO
+        this.subview = new this.FineView(_.extend(this.fine_options || {}, {
+          mapView: this,
+          collection: this.model.get('fine_coll')
+        }));
       }
     }
   },
