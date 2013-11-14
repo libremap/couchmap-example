@@ -149,7 +149,7 @@ var FineMarkerView = Backbone.View.extend({
       this.remove();
     }
     this.marker = L.marker([this.model.get('lat'), this.model.get('lon')],{
-      title: 'fine'
+      title: this.model.id
     })
       .addTo(this.layer);
   },
