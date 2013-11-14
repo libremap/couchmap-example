@@ -3,6 +3,7 @@ var _ = require('underscore');
 var common = require('couchmap-common');
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'images/vendor/leaflet';
+var Lmarkercluster = require('leaflet-markercluster');
 
 function bounds2bbox(bounds) {
   var sw = bounds.getSouthWest();
@@ -11,6 +12,20 @@ function bounds2bbox(bounds) {
   return common.bbox([[sw.lat,sw.lng],[ne.lat,ne.lng]]);
 }
 
+var get_cluster_icon = function(count) {
+  var size = 'large';
+  if (count<10) {
+    size = 'small';
+  } else if (count<100) {
+    size = 'medium';
+  }
+  return new L.DivIcon({
+    html: '<div><span>'+count+'</span></div>',
+      className: 'marker-cluster marker-cluster-'+size,
+      iconSize: new L.Point(40,40)
+  });
+};
+
 var CoarseMarkerView = Backbone.View.extend({
   initialize: function(options) {
     this.layer = options.layer;
@@ -18,28 +33,19 @@ var CoarseMarkerView = Backbone.View.extend({
     this.render();
   },
   render: function() {
-    if (this.marker) {
-      this.remove();
-    }
+    this.remove();
     var count = this.model.get('count');
-    var size = 'large';
-    if (count<10) {
-      size = 'small';
-    } else if (count<100) {
-      size = 'medium';
-    }
-    var icon = new L.DivIcon({
-      html: '<div><span>'+count+'</span></div>',
-      className: 'marker-cluster marker-cluster-'+size,
-      iconSize: new L.Point(40,40)
-    });
     this.marker = L.marker([this.model.get('lat'), this.model.get('lon')],{
-      icon: icon
+      icon: get_cluster_icon(count),
+      view: this
     })
       .addTo(this.layer);
+    this.marker.view = this;
   },
   remove: function() {
-    this.layer.removeLayer(this.marker);
+    if (this.marker) {
+      this.layer.removeLayer(this.marker);
+    }
   }
 });
 
@@ -48,7 +54,43 @@ var CoarseView = Backbone.View.extend({
     this.mapView = options.mapView;
     this.bbox = bounds2bbox(this.mapView.map.getBounds());
     this.zoom = common.validate_zoom(this.mapView.map.getZoom()+1);
-    this.layer = L.layerGroup().addTo(this.mapView.map);
+    this.layer = L.markerClusterGroup(
+      {
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: false,
+        maxClusterRadius: 50,
+        iconCreateFunction: function(cluster) {
+          var count = 0;
+          _.each(cluster.getAllChildMarkers(), function(marker) {
+            count += marker.options.view.model.get('count');
+          });
+          return get_cluster_icon(count);
+        }.bind(this)
+      })
+      .addTo(this.mapView.map)
+      .on('click', function(a) {
+        console.log('marker');
+        var model = a.layer.options.view.model;
+        this.mapView.map.fitBounds([
+          [model.get('bbox_south'), model.get('bbox_west')],
+          [model.get('bbox_north'), model.get('bbox_east')]
+          ]);
+      }.bind(this))
+      .on('clusterclick', function(a) {
+        var models = _.map(a.layer.getAllChildMarkers(), function(marker) {
+          return marker.options.view.model;
+        });
+        var west = _.min(_.map(models, function(model) { return model.get('bbox_west'); }));
+        var east = _.max(_.map(models, function(model) { return model.get('bbox_east'); }));
+        var south = _.min(_.map(models, function(model) { return model.get('bbox_south'); }));
+        var north = _.max(_.map(models, function(model) { return model.get('bbox_north'); }));
+        this.mapView.map.fitBounds([
+          [south, west],
+          [north, east]
+          ]);
+      }.bind(this));
+
+
     this.markers = {};
 
     this.listenTo(this.mapView, 'bbox', function(bbox, zoom) {
@@ -119,7 +161,7 @@ var FineMarkerView = Backbone.View.extend({
 var FineView = Backbone.View.extend({
   initialize: function(options) {
     this.mapView = options.mapView;
-    this.layer = L.layerGroup().addTo(this.mapView.map);
+    this.layer = L.markerClusterGroup().addTo(this.mapView.map);
     this.subviews = {};
     this.listenTo(this.collection, 'sync', this.render);
     this.listenTo(this.collection, 'add', this.addModel);
