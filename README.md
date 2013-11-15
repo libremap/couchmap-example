@@ -1,7 +1,7 @@
 ## What is couchmap?
 
 ### tl;dr
-couchmap displays markers that are stored in a CouchDB on a map. See it in [action](http://couch.libremap.net/couchmap-dev/_design/couchmap-api/index.html)!
+couchmap displays map markers that are stored in a CouchDB. See it in [action](http://couch.libremap.net/couchmap-dev/_design/couchmap-api/index.html)!
 
 ### More information
 CouchMap uses
