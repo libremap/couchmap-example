@@ -1,6 +1,10 @@
 var $ = require('jquery');
 var Backbone =  require('backbone');
 Backbone.$ = $;
+
+var L = require('leaflet');
+L.Icon.Default.imagePath = 'images/vendor/leaflet';
+
 $(document).ready(function() {
 
   var CouchMapModel = require('couchmap-backbone/models/couchMap');
@@ -15,7 +19,7 @@ $(document).ready(function() {
   couchmap_model.on('busy', function() { $('.status').html('busy');});
   couchmap_model.on('idle', function() { $('.status').html('idle');});
 
-  var CouchMapView = require('./views/couchMap');
+  var CouchMapView = require('couchmap-leaflet/views/couchMap');
   var couchmap_view = new CouchMapView({el: $('div.map'), model: couchmap_model});
 
   // insert random models into DB

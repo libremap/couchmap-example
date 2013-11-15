@@ -24,6 +24,7 @@
     "grunt-couch": "~1.2.3",
     "couchmap-common": "libremap/couchmap-common",
     "couchmap-backbone": "libremap/couchmap-backbone",
+    "couchmap-leaflet": "libremap/couchmap-leaflet",
     "browserify": "~2.35",
     "grunt-browserify": "~1.2.8",
     "grunt-replace": "~0.5.1",
