@@ -5,13 +5,6 @@ var L = require('leaflet');
 L.Icon.Default.imagePath = 'images/vendor/leaflet';
 var Lmarkercluster = require('leaflet-markercluster');
 
-function bounds2bbox(bounds) {
-  var sw = bounds.getSouthWest();
-  var ne = bounds.getNorthEast();
-  var common = require('couchmap-common');
-  return common.bbox([[sw.lat,sw.lng],[ne.lat,ne.lng]]);
-}
-
 var get_cluster_icon = function(count) {
   var size = 'large';
   if (count<10) {
@@ -52,7 +45,7 @@ var CoarseMarkerView = Backbone.View.extend({
 var CoarseView = Backbone.View.extend({
   initialize: function(options) {
     this.mapView = options.mapView;
-    this.bbox = bounds2bbox(this.mapView.map.getBounds());
+    this.bbox = common.bbox(this.mapView.map.getBounds());
     this.zoom = common.validate_zoom(this.mapView.map.getZoom()+1);
     this.layer = L.markerClusterGroup(
       {
@@ -209,7 +202,7 @@ module.exports = Backbone.View.extend({
     this.update_bbox();
   },
   update_bbox: function() {
-    var bbox = bounds2bbox(this.map.getBounds());
+    var bbox = common.bbox(this.map.getBounds());
     var zoom = common.validate_zoom(this.map.getZoom()+1);
     this.trigger('bbox', bbox, zoom);
     this.model.update(bbox, zoom);
