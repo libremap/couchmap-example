@@ -6,7 +6,7 @@ module.exports = Backbone.View.extend({
     var model = this.model;
     var mapView = options.mapView;
 
-    // TODO: move into view
+    // update status
     this.listenTo(model, {
       busy: function() { this.$('.status').html('busy'); },
       idle: function() { this.$('.status').html('idle'); }
