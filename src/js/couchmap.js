@@ -8,12 +8,7 @@ L.Icon.Default.imagePath = 'images/vendor/leaflet';
 $(document).ready(function() {
 
   var CouchMapModel = require('couchmap-backbone/models/couchMap');
-  var couchmap_model = new CouchMapModel({
-    coarse_url: 'http://couch.libremap.net/couchmap-dev/_design/couchmap-api/_view/coarse',
-    fine_url: 'http://couch.libremap.net/couchmap-dev/_design/couchmap-api/_spatial/by_location',
-    changes_url: 'http://couch.libremap.net/couchmap-dev/_changes',
-    changes_filter: 'couchmap-api/by_id_or_bbox'
-  });
+  var couchmap_model = new CouchMapModel();
 
   // TODO: move into view
   couchmap_model.on('busy', function() { $('.status').html('busy');});
