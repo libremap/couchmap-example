@@ -9,21 +9,28 @@ L.Icon.Default.imagePath = 'images/vendor/leaflet';
 
 $(document).ready(function() {
   // create ProxyModel (has sub-collections FineColl and CoarseColl)
-  var CouchMapModel = require('couchmap-backbone/models/proxy');
-  var couchmap_model = new CouchMapModel();
+  var ProxyModel = require('couchmap-backbone/models/proxy');
+  var proxyModel = new ProxyModel();
+
+  // create MapView
+  var MapView = require('couchmap-leaflet/views/map');
+  var mapView = new MapView({
+    el: $('div.map'),
+    zoomTo: [[-62,-180],[70,180]]
+  });
 
   // create ProxyView that displays the ProxyModel
-  var CouchMapView = require('couchmap-leaflet/views/proxy');
-  var couchmap_view = new CouchMapView({
-    el: $('div.map'),
-    model: couchmap_model
+  var ProxyView = require('couchmap-leaflet/views/proxy');
+  var proxyView = new ProxyView({
+    model: proxyModel,
+    mapView: mapView
   });
 
   // add ControlView
   var controls = new (require('./controls'))({
     el: $('div.controls'),
-    model: couchmap_model,
+    model: proxyModel,
     db_url: 'http://couchmap.d00d3.net/db/',
-    mapView: couchmap_view
+    mapView: mapView
   });
 });
