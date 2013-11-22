@@ -121,7 +121,8 @@ module.exports = function(grunt) {
           'build-webui/css/vendor.css': [
             'vendor/leaflet/leaflet.css',
             'vendor/leaflet.markercluster/MarkerCluster.css',
-            'vendor/leaflet.markercluster/MarkerCluster.Default.css'
+            'vendor/leaflet.markercluster/MarkerCluster.Default.css',
+            'node_modules/couchmap-leaflet/css/couchmap-leaflet.css'
           ]
         }
       }
